@@ -1,0 +1,19 @@
+{
+  "name": "course_synth",
+  "version": "0.0.1",
+  "description": "A math tutoring website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aweinstock314/CourseSynth.git"
+  },
+  "author": "Avi Ken Paulo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aweinstock314/CourseSynth/issues"
+  },
+  "homepage": "https://github.com/aweinstock314/CourseSynth#readme"
+}
