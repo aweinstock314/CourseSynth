@@ -1,3 +1,20 @@
 body {
 	margin: 0;
 }
+
+#customize {
+	margin: 50px 25%;
+}
+
+button {
+	text-transform: uppercase;
+}
+
+.alert {
+	text-transform: uppercase;
+	text-align: center;
+}
+
+main {
+	margin: 120px 25%;
+}

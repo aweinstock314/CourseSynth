@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
+	<meta charset="utf-8">
+	<meta name="author" content="Ken Liu">
+	<meta name="description" content="A math tutoring site">
 	<title>CourseSynth</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="assets/style.css">
@@ -31,6 +34,35 @@
 		</div>
 	</div>
 </nav>
+
+<form class="form-inline" action="/backend" method="post" id="customize">
+	<label for="calc1">Calc I</label>
+	<input type="checkbox" id="calc1" name="calc1" value=1 checked>
+	<label for="calc2">Calc II</label>
+	<input type="checkbox" id="calc2" name="calc2" value=0>
+	<label for="amount">Number of Questions</label>
+	<input type="text" id="amount" name="num" placeholder="1~50" autofocus required>
+	<button class="btn btn-primary" type="submit">Generate</button>
+</form>
+
+<main>
+	<form>
+		<fieldset>
+			<legend><span>Q1: </span>d/dx x = __</legend>
+			<div class="list-group">
+				<button type="button" class="list-group-item">x</button>
+				<button type="button" class="list-group-item">1</button>
+				<button type="button" class="list-group-item">2x</button>
+				<button type="button" class="list-group-item">0</button>
+			</div>	
+		</fieldset>
+	</form>
+	<div class="alert alert-success" role="alert" hidden>Correct!</div>
+	<div class="alert alert-danger" role="alert" hidden>Oops!</div>
+</main>
+<aside></aside>
+
+<footer></footer>
 
 <script src="https://code.jquery.com/jquery-2.2.4.js"></script>
 <script type="text/javascript" src="assets/index.js"></script>
