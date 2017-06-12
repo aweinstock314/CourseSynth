@@ -1,3 +1,10 @@
+extern crate futures;
+extern crate hyper;
+
+use futures::{Future, IntoFuture};
+use hyper::server::{Http, Service, Request, Response};
+use hyper::{Get, StatusCode};
+use std::net::ToSocketAddrs;
 use std::ops::{Add, Mul};
 
 #[derive(Clone, Debug)]
@@ -40,6 +47,22 @@ fn differentiate(e: Expr<char, u32>, var: char) -> Expr<char, u32> {
     }
 }
 
+struct Website;
+
+impl Service for Website {
+    type Request = Request;
+    type Response = Response;
+    type Error = hyper::Error;
+    type Future = Box<Future<Item=Response, Error=hyper::Error>>;
+
+    fn call(&self, req: Request) -> Self::Future {
+        match (req.method(), req.path()) {
+            (&Get, "/") => Box::new(Ok(Response::new().with_body("Hello, world!".to_string())).into_future()),
+            _ => Box::new(Ok(Response::new().with_status(StatusCode::NotFound)).into_future()),
+        }
+    }
+}
+
 fn main() {
     use Expr::*;
     println!("{:?}", (Variable("x") + Constant(42)).pow(Constant(2) * Variable("y")));
@@ -49,4 +72,7 @@ fn main() {
     let tmp = Variable('x') * Variable('x') + Constant(2);
     println!("Before: {:?}", tmp);
     println!("After: {:?}", differentiate(tmp, 'x'));
+
+    let addr = ("127.0.0.1", 8000).to_socket_addrs().unwrap().next().unwrap();
+    Http::new().bind(&addr, || Ok(Website)).expect("Failed to initialize http server.").run().expect("An error occurred while running the server.");
 }
