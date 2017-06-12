@@ -4,5 +4,6 @@ version = "0.1.0"
 authors = ["Avi Weinstock <aweinstock314@gmail.com>"]
 
 [dependencies]
-hyper = { git = "https://github.com/hyperium/hyper" }
 futures = "0.1.14"
+hyper = { git = "https://github.com/hyperium/hyper" }
+num-traits = "0.1.39"
