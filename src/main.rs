@@ -40,13 +40,16 @@ impl<T, U> Expr<T, U> {
     }
 }
 
-fn differentiate(e: Expr<char, u32>, var: char) -> Expr<char, u32> {
+fn differentiate(e: Expr<char, i32>, var: char) -> Expr<char, i32> {
     match e {
         Expr::Variable(x) if x == var => Expr::Constant(1),
         Expr::Variable(_) => Expr::Constant(0),
         Expr::Constant(_) => Expr::Constant(0),
         Expr::Plus(e1, e2) => differentiate(*e1, var) + differentiate(*e2, var),
-        Expr::Times(e1,e2) => *e1.clone() * differentiate(*e2.clone(), var) + *e2 * differentiate(*e1, var),
+        Expr::Times(e1,e2) => *e1.clone() * differentiate(*e2.clone(), var) + *e2.clone() * differentiate(*e1.clone(), var),
+	Expr::Power(e1,e2) => {
+			*e2.clone() * (*e1.clone()).pow(*e2.clone()+Expr::Constant(-1)) * differentiate(*e1.clone(), var)
+	},
         _ => unimplemented!(),
     }
 }
@@ -114,6 +117,7 @@ fn main() {
     println!("{:?}", (Variable("x") + Constant(42)).pow(Constant(2) * Variable("y")));
     test1(Variable('x') + Variable('x') + Constant(2));
     test1(Variable('x') * Variable('x') + Constant(2));
+    test1(Variable('x') + Variable('x').pow(Constant(2)) + Constant(2));
 
     let addr = ("127.0.0.1", 8000).to_socket_addrs().unwrap().next().unwrap();
     Http::new().bind(&addr, || Ok(Website)).expect("Failed to initialize http server.").run().expect("An error occurred while running the server.");
