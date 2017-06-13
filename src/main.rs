@@ -10,6 +10,7 @@ use num_traits::*;
 use std::fmt::Debug;
 use std::net::ToSocketAddrs;
 use std::ops::{Add, Mul};
+use std::str;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Expr<T, U> {
@@ -97,14 +98,17 @@ impl Service for Website {
     type Future = Box<Future<Item=Response, Error=hyper::Error>>;
 
     fn call(&self, req: Request) -> Self::Future {
+        println!("{:?}", req.path());
         match (req.method(), req.path()) {
-            (&Get, "/") => Box::new(Ok(Response::new().with_body("Hello, world!".to_string())).into_future()),
+            (&Get, "/") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("main.html")).unwrap().to_string())).into_future()),
+            (&Get, "/assets/style.css") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/style.css")).unwrap().to_string())).into_future()),
+            (&Get, "/assets/index.js") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/index.js")).unwrap().to_string())).into_future()),
             _ => Box::new(Ok(Response::new().with_status(StatusCode::NotFound)).into_future()),
         }
     }
 }
 
-fn test1(e: Expr<char, u32>) {
+fn test1(e: Expr<char, i32>) {
     println!("e: {:?}", e);
     let e1 = differentiate(e, 'x');
     println!("differentiated: {:?}", e1);
