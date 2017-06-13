@@ -2,6 +2,7 @@
 extern crate futures;
 extern crate hyper;
 extern crate num_traits;
+extern crate rand;
 
 use futures::{Future, IntoFuture};
 use hyper::server::{Http, Service, Request, Response};
@@ -11,6 +12,8 @@ use std::fmt::Debug;
 use std::net::ToSocketAddrs;
 use std::ops::{Add, Mul};
 use std::str;
+use rand::distributions::{Normal, IndependentSample};
+use rand::{thread_rng, sample, Rng};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Expr<T, U> {
@@ -51,10 +54,28 @@ fn differentiate(e: Expr<char, i32>, var: char) -> Expr<char, i32> {
 	Expr::Power(e1,e2) => {
 			*e2.clone() * (*e1.clone()).pow(*e2.clone()+Expr::Constant(-1)) * differentiate(*e1.clone(), var)
 	},
-        _ => unimplemented!(),
     }
 }
-
+fn generate(depth:usize, var: char) -> Expr<char, i32> {
+	let normal = Normal::new(0.0,1.0);
+	if depth==0 {
+		let v2 = normal.ind_sample(&mut thread_rng());
+		if thread_rng().gen() {
+			Expr::Variable(var)	
+		}
+		else {
+			Expr::Constant(v2 as i32)
+		}
+	}
+	else {
+		match thread_rng().gen::<u32>()%3{
+			0 => generate(depth-1, var) + generate(depth-1, var),
+			1 => generate(depth-1, var) * generate(depth-1, var),
+			2 => generate(depth-1, var).pow(Expr::Constant(thread_rng().gen::<i32>().abs()%5+1)),
+			_ => unreachable!(),
+		}
+	}			
+}
 fn simplify<T, U: Eq+Zero+One>(e: Expr<T, U>) -> Expr<T, U> {
     use Expr::*;
     match e {
@@ -122,7 +143,9 @@ fn main() {
     test1(Variable('x') + Variable('x') + Constant(2));
     test1(Variable('x') * Variable('x') + Constant(2));
     test1(Variable('x') + Variable('x').pow(Constant(2)) + Constant(2));
-
+    for i in 0..5 {
+	println!("Tree: {} {:?}", i, generate(i,'x'));
+	} 
     let addr = ("127.0.0.1", 8000).to_socket_addrs().unwrap().next().unwrap();
     Http::new().bind(&addr, || Ok(Website)).expect("Failed to initialize http server.").run().expect("An error occurred while running the server.");
 }

@@ -7,3 +7,4 @@ authors = ["Avi Weinstock <aweinstock314@gmail.com>"]
 futures = "0.1.14"
 hyper = { git = "https://github.com/hyperium/hyper" }
 num-traits = "0.1.39"
+rand = "0.3.15"
