@@ -6,7 +6,7 @@ extern crate rand;
 
 use futures::{Future, IntoFuture};
 use hyper::server::{Http, Service, Request, Response};
-use hyper::{Get, StatusCode};
+use hyper::{Get, Post, StatusCode};
 use num_traits::*;
 use std::fmt::Debug;
 use std::net::ToSocketAddrs;
@@ -119,9 +119,19 @@ impl Service for Website {
     type Future = Box<Future<Item=Response, Error=hyper::Error>>;
 
     fn call(&self, req: Request) -> Self::Future {
-        println!("{:?}", req.path());
         match (req.method(), req.path()) {
-            (&Get, "/") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("main.html")).unwrap().to_string())).into_future()),
+            (&Get, "/") => {
+                let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
+                Box::new(Ok(Response::new().with_body(s)).into_future())
+            },
+            (&Post,"/") => {
+                //update the s
+                println!("success!");
+                //render the main.html
+                let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
+
+                Box::new(Ok(Response::new().with_body(s)).into_future())
+            },
             (&Get, "/assets/style.css") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/style.css")).unwrap().to_string())).into_future()),
             (&Get, "/assets/index.js") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/index.js")).unwrap().to_string())).into_future()),
             _ => Box::new(Ok(Response::new().with_status(StatusCode::NotFound)).into_future()),

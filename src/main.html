@@ -35,7 +35,7 @@
 	</div>
 </nav>
 
-<form class="form-inline" action="/backend" method="post" id="customize">
+<form class="form-inline" action="/" method="post" id="customize">
 	<label for="calc1">Calc I</label>
 	<input type="checkbox" id="calc1" name="calc1" value=1 checked>
 	<label for="calc2">Calc II</label>
@@ -46,19 +46,20 @@
 </form>
 
 <main>
-	<form>
+	<form action="/answer" method="post" id="qbox">
 		<fieldset>
-			<legend><span>Q1: </span>d/dx x = __</legend>
-			<div class="list-group">
-				<button type="button" class="list-group-item">x</button>
-				<button type="button" class="list-group-item">1</button>
-				<button type="button" class="list-group-item">2x</button>
-				<button type="button" class="list-group-item">0</button>
-			</div>	
+			<legend id="question">QUESTION TO BE GENERATE</legend>
+			<div id="options">
+				<button type="submit" class="option" id="opt1">Option 1</button><br>
+				<button type="submit" class="option" id="opt2">Option 2</button><br>
+				<button type="submit" class="option" id="opt3">Option 3</button><br>
+				<button type="submit" class="option" id="opt4">Option 4</button><br>
+				<button type="submit" class="option" id="opt5">Option 5</button><br>
+			</div>
 		</fieldset>
+		<div class="alert alert-success" role="alert" hidden>Correct!</div>
+		<div class="alert alert-danger" role="alert" hidden>Oops!</div>
 	</form>
-	<div class="alert alert-success" role="alert" hidden>Correct!</div>
-	<div class="alert alert-danger" role="alert" hidden>Oops!</div>
 </main>
 <aside></aside>
 
