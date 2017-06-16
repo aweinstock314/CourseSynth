@@ -1,18 +1,47 @@
 body {
 	margin: 0;
+	background-color: #FFFFCC;
 }
 
-#customize {
-	margin: 50px 25%;
-}
 
 #generate {
 	text-transform: uppercase;
+	background-color: #3399CC;
+	border-radius: 15px;
+	font-family: 'Orbitron', sans-serif;
 }
 
 .alert {
 	text-transform: uppercase;
 	text-align: center;
+}
+
+
+.navbar-default {
+	background: #3399CC;
+	border-bottom: 0;
+	box-shadow: 1px 2px 3px rgba(0, 0, 0, .2);
+	font-family: 'Orbitron', sans-serif;
+}
+
+.navbar-default .navbar-nav>li>a {
+	color: white;
+}
+
+.navbar-default .navbar-brand {
+	color: white;
+}
+
+.checkbox label {
+	font-weight: bold;
+	font-family: 'Exo 2', sans-serif;
+}
+
+.form-group label {
+	padding-left: 20px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	font-family: 'Exo 2', sans-serif;
 }
 
 
@@ -23,20 +52,66 @@ main {
 legend {
 	margin: 0 auto;
 	text-align: center;
+	color: #336699;
+}
+
+input {
+	border: 0;
+	font-family: 'Exo 2', sans-serif;
+}
+
+input:focus {
+	outline: none;
+	background-color: white;
+	border: 3px solid #3399CC;
+	border-radius: 5px;
+}
+
+.form-inline {
+	background-color: #99CCFF;
+	text-align: center;
+	margin: 50px auto;
+	width: 100%;
+	box-shadow: 1px 2px 3px rgba(0, 0, 0, .2);
+}
+
+.form-inline .btn {
+	margin-left: 20px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding-bottom: 0;
+}
+
+
+.navbar-default .navbar-nav > .active > a {
+	background-color: #99CCCC;
 }
 
 #qbox {
+	border: 5px solid #336699;
 	width: 400px;
-	background-color: #77CCFF;
+	background-color: #99CCFF;
 	padding: 20px;
+	border-radius: 25px;
+	box-shadow: 1px 8px 16px rgba(0, 0, 0, .3);
+	font-family: 'Exo 2', sans-serif;
+	color: #336699;
 }
 
 .option {
-	border: 1px solid black;
-	text-align: center;
+	border:0;
 	margin:3px 20%;
 	width: 60%;
+	background-color: #CCFFCC;
+	border-radius: 25px;
 }
+
+.option:hover {
+	background-color: #99CCCC;
+	color: white;
+	transition: 0.5s,linear;
+}
+
 
 #options {
 	margin-top: 5px;
