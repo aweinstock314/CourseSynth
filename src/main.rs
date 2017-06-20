@@ -128,8 +128,31 @@ impl Service for Website {
                 //update the s
                 println!("success!");
                 //render the main.html
-                let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
-
+                //let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
+		let mut s = String::new();
+		s+= "<script type=\"text/x-mathjax-config\">
+  MathJax.Hub.Config({
+    extensions: [\"tex2jax.js\"],
+    jax: [\"input/TeX\", \"output/HTML-CSS\"],
+    tex2jax: {
+      inlineMath: [ ['$','$'], [\"\\(\",\"\\)\"] ],
+      displayMath: [ ['$$','$$'], [\"\\[\",\"\\]\"] ],
+      processEscapes: true
+    },
+    \"HTML-CSS\": { availableFonts: [\"TeX\"] }
+  });
+</script>
+<script type=\"text/javascript\" src=\"path-to-MathJax/MathJax.js\">
+</script>";
+		s+= "<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'></script>";
+		s+= "$x+y^\\Gamma$";	
+		s+= "<pre>";
+		for x in 0..5 {
+			
+			s += &format! ("{:?}", generate(3, 'x'));
+			s += &format! ("\n\n");
+		}
+		s+= "</pre>";
                 Box::new(Ok(Response::new().with_body(s)).into_future())
             },
             (&Get, "/assets/style.css") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/style.css")).unwrap().to_string())).into_future()),
