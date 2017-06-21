@@ -96,6 +96,16 @@ fn simplify<T, U: Eq+Zero+One>(e: Expr<T, U>) -> Expr<T, U> {
         x => x,
     }
 }
+fn emit_latec<T:std::fmt::Display, U:std::fmt::Display>(e: Expr<T, U>) -> String {
+    use Expr::*;
+    match e {
+	Constant(x) =>format! ("{}", x),
+	Variable(x) =>format! ("{}", x),
+        Plus(box x, box y) => { format! ("{} + {}", emit_latec(y), emit_latec(x))}
+        Times(box x, box y) => { format! ("{} * {}", emit_latec(y), emit_latec(x))},
+        Power(box x, box y) => { format! ("{{{}}}^{{{}}}", emit_latec(x), emit_latec(y))},
+    }
+}
 
 fn converge<T: Debug+Eq, F: Fn(&T) -> T>(f: F, x: T) -> T {
     let mut last = x;
@@ -141,18 +151,15 @@ impl Service for Website {
     },
     \"HTML-CSS\": { availableFonts: [\"TeX\"] }
   });
-</script>
-<script type=\"text/javascript\" src=\"path-to-MathJax/MathJax.js\">
 </script>";
 		s+= "<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'></script>";
-		s+= "$x+y^\\Gamma$";	
-		s+= "<pre>";
+		//s+= "<pre>";
 		for x in 0..5 {
 			
-			s += &format! ("{:?}", generate(3, 'x'));
-			s += &format! ("\n\n");
+			s += &format! ("${}$", emit_latec(  converge(|x| simplify(x.clone()), generate(3, 'x'))));
+			s += "\n<br>";
 		}
-		s+= "</pre>";
+		//s+= "</pre>";
                 Box::new(Ok(Response::new().with_body(s)).into_future())
             },
             (&Get, "/assets/style.css") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/style.css")).unwrap().to_string())).into_future()),
