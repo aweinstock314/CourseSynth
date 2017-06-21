@@ -124,7 +124,7 @@ impl Service for Website {
                 let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
                 Box::new(Ok(Response::new().with_body(s)).into_future())
             },
-            (&Post,"/") => {
+            (&Post,"/generate") => {
                 //update the s
                 println!("success!");
                 //render the main.html
