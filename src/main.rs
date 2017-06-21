@@ -3,8 +3,9 @@ extern crate futures;
 extern crate hyper;
 extern crate num_traits;
 extern crate rand;
+extern crate serde_urlencoded;
 
-use futures::{Future, IntoFuture};
+use futures::{Future, IntoFuture, Stream};
 use hyper::server::{Http, Service, Request, Response};
 use hyper::{Get, Post, StatusCode};
 use num_traits::*;
@@ -13,6 +14,7 @@ use std::net::ToSocketAddrs;
 use std::ops::{Add, Mul};
 use std::str;
 use rand::distributions::{Normal, IndependentSample};
+use std::collections::HashMap;
 use rand::{thread_rng, sample, Rng};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -154,13 +156,27 @@ impl Service for Website {
 </script>";
 		s+= "<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'></script>";
 		//s+= "<pre>";
-		for x in 0..5 {
+		let body=req.body();
+		Box::new(body.concat2().and_then(move|chunk| {
+			let f=String::from_utf8_lossy(&chunk);
+			let params: Result<HashMap<String, usize>,_> = serde_urlencoded::from_str(&f);
 			
-			s += &format! ("${}$", emit_latec(  converge(|x| simplify(x.clone()), generate(3, 'x'))));
-			s += "\n<br>";
-		}
-		//s+= "</pre>";
-                Box::new(Ok(Response::new().with_body(s)).into_future())
+			println! ("{:?}", params);
+			if let Ok (params)= params {
+				println! ("{:?}", params.get("num"));
+				for x in 0..*params.get("num").unwrap_or(&1) {
+					s += &format! ("${}$", emit_latec(  converge(|x| simplify(x.clone()), generate(3, 'x'))));
+					s += "\n<br>";
+				}
+				Box::new(Ok(Response::new().with_body(s)).into_future())
+			}
+			else{
+				Box::new(Ok(Response::new().with_body("Invalid Parameter")).into_future())
+
+
+
+			}
+		}))
             },
             (&Get, "/assets/style.css") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/style.css")).unwrap().to_string())).into_future()),
             (&Get, "/assets/index.js") => Box::new(Ok(Response::new().with_body(str::from_utf8(include_bytes!("assets/index.js")).unwrap().to_string())).into_future()),
