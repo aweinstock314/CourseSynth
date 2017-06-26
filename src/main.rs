@@ -74,6 +74,17 @@ fn generate(depth: usize, var: char) -> Expr<char, i32> {
         }
     }
 }
+fn generate2(depth:usize, var: char) -> Expr<char, i32> {
+        let normal = Normal::new(2.0,3.0);
+	let v2 = normal.ind_sample(&mut thread_rng());
+        if depth==0 {
+                Expr::Constant(v2 as i32)
+        }
+        else {
+		Expr::Constant(v2 as i32) * Expr::Variable(var).pow(Expr::Constant(depth as i32)) + generate2(depth-1, var)
+        }
+}
+
 fn ipow<T: Copy + Eq + Zero + One + Sub<T, Output = T>>(base: T, exponent: T) -> T {
     if exponent == zero() {
         one()
@@ -181,7 +192,7 @@ impl Service for Website {
                     if let Ok(params) = params {
                         println!("{:?}", params.get("num"));
                         for x in 0..*params.get("num").unwrap_or(&1) {
-                            s += &format!("${}$", emit_latex(converge(|x| simplify(x.clone()), generate(3, 'x'))));
+                            s += &format!("${}$", emit_latex(converge(|x| simplify(x.clone()), generate2(3, 'x'))));
                             s += "\n<br>";
                         }
                         Box::new(Ok(Response::new().with_body(s)).into_future())
@@ -216,7 +227,7 @@ fn main() {
     test1(Variable('x') * Variable('x') + Constant(2));
     test1(Variable('x') + Variable('x').pow(Constant(2)) + Constant(2));
     for i in 0..5 {
-        println!("Tree: {} {:?}", i, generate(i, 'x'));
+        println!("Tree: {} {:?}", i, generate2(i, 'x'));
     }
     let addr = ("127.0.0.1", 8000).to_socket_addrs().unwrap().next().unwrap();
     Http::new().bind(&addr, || Ok(Website)).expect("Failed to initialize http server.").run().expect("An error occurred while running the server.");
