@@ -59,7 +59,7 @@ fn differentiate(e: Expr<char, i32>, var: char) -> Expr<char, i32> {
     }
 }
 fn generate(depth:usize, var: char) -> Expr<char, i32> {
-	let normal = Normal::new(0.0,1.0);
+	let normal = Normal::new(2.0,3.0);
 	if depth==0 {
 		let v2 = normal.ind_sample(&mut thread_rng());
 		if thread_rng().gen() {
@@ -85,20 +85,32 @@ fn ipow<T: Copy+Eq+Zero+One+Sub<T, Output=T>>(base: T, exponent: T) -> T{
         base * ipow(base, exponent-one())
     }
 }
-fn simplify<T: Clone, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U> {
-
+fn simplify<T: Clone+Eq, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U> {
     use Expr::*;
     match e {
         // Constant evalutation
         Plus(box Constant(x), box Constant(y)) => Constant(x+y),
         Times(box Constant(x), box Constant(y)) => Constant(x*y),
-        Power(box Constant(x), box Constant(y)) => Constant(ipow(x, y)),
+	Times(box Power(box ref x, box ref y), box Power(box ref w, box ref z))  if x== w => { x.clone().pow(y.clone()+z.clone()) },
+	Times(box Power(box ref x, box ref y), box ref w)  if x== w => { x.clone().pow(y.clone()+Constant(one())) },
 
+	Power(box Power(box ref x, box Constant(y)), box Constant(z)) => {x.clone().pow(Constant(y*z)) },
+	Power(box ref x, box Constant(y))  if y == one()=> { x.clone() },
+	Power(box ref x, box Constant(y))  if y == zero()=> { Constant(one()) },            
+	Power(box Constant(x), box Constant(y))  if x == zero() => { Constant(zero()) },
+	Power(box Constant(x), box Constant(y))  if x == one() => { Constant(one()) },
+	Power(box Constant(x), box Constant(y)) => Constant(ipow(x, y)),
+
+	Times(box ref x, box ref w)  if x==w => {  x.clone().pow(Constant(one())+Constant(one())) },
+ 
+		
         // Algebraic identities
         Plus(box Constant(x), box ref y) if x == zero() => { y.clone() },
         Plus(box ref x, box Constant(y)) if y == zero() => { x.clone() },
         Times(box Constant(x), box ref y) if x == one() => { y.clone() },
         Times(box ref x, box Constant(y)) if y == one() => { x.clone() },
+	Times(box Constant(x), box ref y) if x == zero() => { Constant(zero()) },
+        Times(box ref x, box Constant(y)) if y == zero() => { Constant(zero()) },
 
         // Recursion into subtrees
         Plus(box x, box y) => { simplify(x) + simplify(y) }
