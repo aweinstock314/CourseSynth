@@ -11,7 +11,7 @@ use hyper::{Get, Post, StatusCode};
 use num_traits::*;
 use std::fmt::Debug;
 use std::net::ToSocketAddrs;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use std::str;
 use rand::distributions::{Normal, IndependentSample};
 use std::collections::HashMap;
@@ -78,12 +78,21 @@ fn generate(depth:usize, var: char) -> Expr<char, i32> {
 		}
 	}			
 }
-fn simplify<T, U: Eq+Zero+One>(e: Expr<T, U>) -> Expr<T, U> {
+fn ipow<T: Copy+Eq+Zero+One+Sub<T, Output=T>>(base: T, exponent: T) -> T{
+    if exponent == zero() {
+        one()
+    } else {
+        base * ipow(base, exponent-one())
+    }
+}
+fn simplify<T, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U> {
+
     use Expr::*;
     match e {
         // Constant evalutation
         Plus(box Constant(x), box Constant(y)) => Constant(x+y),
         Times(box Constant(x), box Constant(y)) => Constant(x*y),
+        Power(box Constant(x), box Constant(y)) => Constant(ipow(x, y)),
 
         // Algebraic identities
         Plus(box Constant(x), box y) => if x == zero() { y } else { Constant(x) + y },
@@ -98,14 +107,14 @@ fn simplify<T, U: Eq+Zero+One>(e: Expr<T, U>) -> Expr<T, U> {
         x => x,
     }
 }
-fn emit_latec<T:std::fmt::Display, U:std::fmt::Display>(e: Expr<T, U>) -> String {
+fn emit_latex<T:std::fmt::Display, U:std::fmt::Display>(e: Expr<T, U>) -> String {
     use Expr::*;
     match e {
-	Constant(x) =>format! ("{}", x),
-	Variable(x) =>format! ("{}", x),
-        Plus(box x, box y) => { format! ("{} + {}", emit_latec(y), emit_latec(x))}
-        Times(box x, box y) => { format! ("{} * {}", emit_latec(y), emit_latec(x))},
-        Power(box x, box y) => { format! ("{{{}}}^{{{}}}", emit_latec(x), emit_latec(y))},
+	Constant(x) => format!("{}", x),
+	Variable(x) => format!("{}", x),
+        Plus(box x, box y) => { format!("\\left({}\\right) + \\left({}\\right)", emit_latex(y), emit_latex(x)) }
+        Times(box x, box y) => { format!("\\left({}\\right) * \\left({}\\right)", emit_latex(y), emit_latex(x)) },
+        Power(box x, box y) => { format!("\\left({{{}}}\\right)^{{{}}}", emit_latex(x), emit_latex(y)) },
     }
 }
 
@@ -142,7 +151,7 @@ impl Service for Website {
                 //render the main.html
                 //let s = str::from_utf8(include_bytes!("main.html")).unwrap().to_string();
 		let mut s = String::new();
-		s+= "<script type=\"text/x-mathjax-config\">
+		s += "<script type=\"text/x-mathjax-config\">
   MathJax.Hub.Config({
     extensions: [\"tex2jax.js\"],
     jax: [\"input/TeX\", \"output/HTML-CSS\"],
@@ -154,8 +163,7 @@ impl Service for Website {
     \"HTML-CSS\": { availableFonts: [\"TeX\"] }
   });
 </script>";
-		s+= "<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'></script>";
-		//s+= "<pre>";
+		s += "<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'></script>";
 		let body=req.body();
 		Box::new(body.concat2().and_then(move|chunk| {
 			let f=String::from_utf8_lossy(&chunk);
@@ -165,7 +173,7 @@ impl Service for Website {
 			if let Ok (params)= params {
 				println! ("{:?}", params.get("num"));
 				for x in 0..*params.get("num").unwrap_or(&1) {
-					s += &format! ("${}$", emit_latec(  converge(|x| simplify(x.clone()), generate(3, 'x'))));
+					s += &format!("${}$", emit_latex(  converge(|x| simplify(x.clone()), generate(3, 'x'))));
 					s += "\n<br>";
 				}
 				Box::new(Ok(Response::new().with_body(s)).into_future())
