@@ -15,7 +15,7 @@ use std::ops::{Add, Mul, Sub};
 use std::str;
 use rand::distributions::{Normal, IndependentSample};
 use std::collections::HashMap;
-use rand::{thread_rng, sample, Rng};
+use rand::{thread_rng, Rng};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Expr<T, U> {
@@ -46,14 +46,14 @@ impl<T, U> Expr<T, U> {
     }
 }
 
-fn differentiate(e: Expr<char, i32>, var: char) -> Expr<char, i32> {
+fn differentiate<U: Clone + Zero + One + Sub<U, Output = U>>(e: Expr<char, U>, var: char) -> Expr<char, U> {
     match e {
-        Expr::Variable(x) if x == var => Expr::Constant(1),
-        Expr::Variable(_) => Expr::Constant(0),
-        Expr::Constant(_) => Expr::Constant(0),
+        Expr::Variable(x) if x == var => Expr::Constant(one()),
+        Expr::Variable(_) => Expr::Constant(zero()),
+        Expr::Constant(_) => Expr::Constant(zero()),
         Expr::Plus(e1, e2) => differentiate(*e1, var) + differentiate(*e2, var),
         Expr::Times(e1, e2) => *e1.clone() * differentiate(*e2.clone(), var) + *e2.clone() * differentiate(*e1.clone(), var),
-        Expr::Power(e1, e2) => *e2.clone() * (*e1.clone()).pow(*e2.clone() + Expr::Constant(-1)) * differentiate(*e1.clone(), var),
+        Expr::Power(e1, e2) => *e2.clone() * (*e1.clone()).pow(*e2.clone() + Expr::Constant(zero::<U>() - one())) * differentiate(*e1.clone(), var),
     }
 }
 fn generate(depth: usize, var: char) -> Expr<char, i32> {
@@ -74,15 +74,14 @@ fn generate(depth: usize, var: char) -> Expr<char, i32> {
         }
     }
 }
-fn generate2(depth:usize, var: char) -> Expr<char, i32> {
-        let normal = Normal::new(2.0,3.0);
-	let v2 = normal.ind_sample(&mut thread_rng());
-        if depth==0 {
-                Expr::Constant(v2 as i32)
-        }
-        else {
-		Expr::Constant(v2 as i32) * Expr::Variable(var).pow(Expr::Constant(depth as i32)) + generate2(depth-1, var)
-        }
+fn generate2(depth: usize, var: char) -> Expr<char, i32> {
+    let normal = Normal::new(2.0, 3.0);
+    let v2 = normal.ind_sample(&mut thread_rng());
+    if depth == 0 {
+        Expr::Constant(v2 as i32)
+    } else {
+        Expr::Constant(v2 as i32) * Expr::Variable(var).pow(Expr::Constant(depth as i32)) + generate2(depth - 1, var)
+    }
 }
 
 fn ipow<T: Copy + Eq + Zero + One + Sub<T, Output = T>>(base: T, exponent: T) -> T {
@@ -103,9 +102,9 @@ fn simplify<T: Clone + Eq, U: Copy + Eq + Zero + One + Sub<U, Output = U>>(e: Ex
 
         Power(box Power(box ref x, box Constant(y)), box Constant(z)) => x.clone().pow(Constant(y * z)),
         Power(box ref x, box Constant(y)) if y == one() => x.clone(),
-        Power(box ref x, box Constant(y)) if y == zero() => Constant(one()),
-        Power(box Constant(x), box Constant(y)) if x == zero() => Constant(zero()),
-        Power(box Constant(x), box Constant(y)) if x == one() => Constant(one()),
+        Power(box _, box Constant(y)) if y == zero() => Constant(one()),
+        Power(box Constant(x), box Constant(_)) if x == zero() => Constant(zero()),
+        Power(box Constant(x), box Constant(_)) if x == one() => Constant(one()),
         Power(box Constant(x), box Constant(y)) => Constant(ipow(x, y)),
 
         Times(box ref x, box ref w) if x == w => x.clone().pow(Constant(one()) + Constant(one())),
@@ -115,8 +114,8 @@ fn simplify<T: Clone + Eq, U: Copy + Eq + Zero + One + Sub<U, Output = U>>(e: Ex
         Plus(box ref x, box Constant(y)) if y == zero() => x.clone(),
         Times(box Constant(x), box ref y) if x == one() => y.clone(),
         Times(box ref x, box Constant(y)) if y == one() => x.clone(),
-        Times(box Constant(x), box ref y) if x == zero() => Constant(zero()),
-        Times(box ref x, box Constant(y)) if y == zero() => Constant(zero()),
+        Times(box Constant(x), box _) if x == zero() => Constant(zero()),
+        Times(box _, box Constant(y)) if y == zero() => Constant(zero()),
 
         // Recursion into subtrees
         Plus(box x, box y) => simplify(x) + simplify(y),
@@ -191,7 +190,7 @@ impl Service for Website {
                     println!("{:?}", params);
                     if let Ok(params) = params {
                         println!("{:?}", params.get("num"));
-                        for x in 0..*params.get("num").unwrap_or(&1) {
+                        for _ in 0..*params.get("num").unwrap_or(&1) {
                             s += &format!("${}$", emit_latex(converge(|x| simplify(x.clone()), generate2(3, 'x'))));
                             s += "\n<br>";
                         }
