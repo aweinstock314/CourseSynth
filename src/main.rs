@@ -85,7 +85,7 @@ fn ipow<T: Copy+Eq+Zero+One+Sub<T, Output=T>>(base: T, exponent: T) -> T{
         base * ipow(base, exponent-one())
     }
 }
-fn simplify<T, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U> {
+fn simplify<T: Clone, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U> {
 
     use Expr::*;
     match e {
@@ -95,10 +95,10 @@ fn simplify<T, U: Copy+Eq+Zero+One+Sub<U, Output=U>>(e: Expr<T, U>) -> Expr<T, U
         Power(box Constant(x), box Constant(y)) => Constant(ipow(x, y)),
 
         // Algebraic identities
-        Plus(box Constant(x), box y) => if x == zero() { y } else { Constant(x) + y },
-        Plus(box x, box Constant(y)) => if y == zero() { x } else { x + Constant(y) },
-        Times(box Constant(x), box y) => if x == one() { y } else { Constant(x) * y },
-        Times(box x, box Constant(y)) => if y == one() { x } else { x * Constant(y) },
+        Plus(box Constant(x), box ref y) if x == zero() => { y.clone() },
+        Plus(box ref x, box Constant(y)) if y == zero() => { x.clone() },
+        Times(box Constant(x), box ref y) if x == one() => { y.clone() },
+        Times(box ref x, box Constant(y)) if y == one() => { x.clone() },
 
         // Recursion into subtrees
         Plus(box x, box y) => { simplify(x) + simplify(y) }
